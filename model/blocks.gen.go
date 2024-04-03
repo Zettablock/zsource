@@ -42,7 +42,7 @@ type Block struct {
 
 // TableName Block's table name
 func (*Block) TableName() string {
-	return "ethereum_sepolia.blocks"
+	return "ethereum_holesky.blocks"
 }
 
 type BlockDao struct {
