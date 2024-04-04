@@ -9,7 +9,7 @@ import (
 )
 
 type DemoBlockStats struct {
-	BlockNumber  int       `json:"block_number" gorm:"column:block_number"`
+	BlockNumber  int       `json:"block_number" gorm:"primaryKey;column:block_number"`
 	MetaData     []byte    `json:"meta_data" gorm:"type:jsonb;default:'{}';column:meta_data"`
 	ProcessTime  time.Time `json:"process_time" gorm:"column:process_time"`
 	State        string    `json:"state" gorm:"column:state"`
@@ -39,6 +39,14 @@ func NewDemoBlockStatsDao(ctx context.Context, dbs ...*gorm.DB) *DemoBlockStatsD
 		dao.replicaDB = dbs[1:]
 	}
 	return dao
+}
+
+func (d *DemoBlockStatsDao) Upsert(ctx context.Context, obj *DemoBlockStats) error {
+	err := d.sourceDB.Save(&obj).Error
+	if err != nil {
+		return fmt.Errorf("DemoBlockStatsDao: %w", err)
+	}
+	return nil
 }
 
 func (d *DemoBlockStatsDao) Create(ctx context.Context, obj *DemoBlockStats) error {
