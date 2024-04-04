@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/Zettablock/demo2/dao"
 	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 	"plugin"
