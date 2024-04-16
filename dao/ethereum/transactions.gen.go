@@ -1,4 +1,4 @@
-package ethereum_holesky
+package ethereum
 
 import (
 	"context"
@@ -47,9 +47,9 @@ type Transaction struct {
 }
 
 // TableName Transaction's table name
-func (*Transaction) TableName() string {
-	return "ethereum_holesky.transactions"
-}
+//func (*Transaction) TableName() string {
+//	return "transactions"
+//}
 
 type TransactionDao struct {
 	sourceDB  *gorm.DB

@@ -1,4 +1,4 @@
-package ethereum_holesky
+package ethereum
 
 import (
 	"context"
@@ -48,9 +48,9 @@ type Trace struct {
 }
 
 // TableName Trace's table name
-func (*Trace) TableName() string {
-	return "ethereum_holesky.traces"
-}
+//func (*Trace) TableName() string {
+//	return "traces"
+//}
 
 type TraceDao struct {
 	sourceDB  *gorm.DB

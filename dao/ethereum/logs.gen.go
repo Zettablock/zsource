@@ -1,4 +1,4 @@
-package ethereum_holesky
+package ethereum
 
 import (
 	"context"
@@ -33,9 +33,9 @@ type Log struct {
 }
 
 // TableName Log's table name
-func (*Log) TableName() string {
-	return "ethereum_holesky.logs"
-}
+//func (*Log) TableName() string {
+//	return "logs"
+//}
 
 type LogDao struct {
 	sourceDB  *gorm.DB
