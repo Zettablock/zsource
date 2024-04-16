@@ -1,4 +1,4 @@
-module github.com/Zettablock/demo2
+module github.com/Zettablock/zsource
 
 go 1.19
 
