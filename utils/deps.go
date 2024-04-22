@@ -7,9 +7,10 @@ import (
 )
 
 type Deps struct {
-	SourceDB      *gorm.DB
-	DestinationDB *gorm.DB
-	MetadataDB    *gorm.DB
-	Logger        *slog.Logger
-	Handlers      map[string]plugin.Symbol
+	SourceDB          *gorm.DB
+	DestinationDB     *gorm.DB
+	DestinationSchema string
+	MetadataDB        *gorm.DB
+	Logger            *slog.Logger
+	Handlers          map[string]plugin.Symbol
 }
