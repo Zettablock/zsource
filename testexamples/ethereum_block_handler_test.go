@@ -25,5 +25,5 @@ func TestHandlers(t *testing.T) {
 	runner := testutils.NewEthereumBlockHandlerTestRunner(t, sourceData)
 	defer runner.Close()
 
-	runner.TestHandler(FindBlockHandler, 0)
+	runner.TestHandlerString(FindBlockHandler, 0)
 }
