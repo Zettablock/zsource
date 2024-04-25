@@ -13,7 +13,7 @@ import (
 type Trace struct {
 	TransactionHash   string         `gorm:"column:transaction_hash" json:"transaction_hash"`
 	TransactionIndex  int32          `gorm:"column:transaction_index" json:"transaction_index"`
-	BlockNumber       int32          `gorm:"column:block_number;not null" json:"block_number"`
+	BlockNumber       int64          `gorm:"column:block_number;not null" json:"block_number"`
 	BlockHash         string         `gorm:"column:block_hash;not null" json:"block_hash"`
 	BlockTime         time.Time      `gorm:"column:block_time;not null" json:"block_time"`
 	FromAddress       string         `gorm:"column:from_address" json:"from_address"`
