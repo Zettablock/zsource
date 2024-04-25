@@ -8,8 +8,16 @@ import (
 	"github.com/Zettablock/zsource/utils"
 )
 
-func FindBlockHandler(blockNumber string, deps *utils.Deps) (bool, error) {
+func FindBlockHandlerString(blockNumber string, deps *utils.Deps) (bool, error) {
 	if blockNumber == "2" {
+		// TODO(meng): write to destination db.
+		return false, nil
+	}
+	return false, nil
+}
+
+func FindBlockHandlerInt64(blockNumber int64, deps *utils.Deps) (bool, error) {
+	if blockNumber == 2 {
 		// TODO(meng): write to destination db.
 		return false, nil
 	}
@@ -25,5 +33,6 @@ func TestHandlers(t *testing.T) {
 	runner := testutils.NewEthereumBlockHandlerTestRunner(t, sourceData)
 	defer runner.Close()
 
-	runner.TestHandler(FindBlockHandler, 0)
+	runner.TestHandlerString(FindBlockHandlerString, 0)
+	runner.TestHandlerInt64(FindBlockHandlerInt64, 0)
 }

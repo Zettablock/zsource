@@ -16,7 +16,13 @@ import (
 	"gorm.io/gorm/schema"
 )
 
-type Handler func(blockNumber string, deps *utils.Deps) (bool, error)
+// HandlerString is the signature of the handler function that takes a
+// string as block number.
+type HandlerString func(blockNumber string, deps *utils.Deps) (bool, error)
+
+// HandlerInt64 is the signature of the handler function that takes a
+// int64 as block number.
+type HandlerInt64 func(blockNumber int64, deps *utils.Deps) (bool, error)
 
 const (
 	// We use the same version as our production database for testing.
@@ -69,7 +75,13 @@ func NewEthereumBlockHandlerTestRunner(t *testing.T, sourceData []*ethereum.Bloc
 	}
 }
 
-func (r *EthereumBlockHandlerTestRunner) TestHandler(handler Handler, expDestCount int) {
+func (r *EthereumBlockHandlerTestRunner) TestHandlerString(handler HandlerString, expDestCount int) {
+	// TODO(meng): Traverse the source db table and for each block call the handler.
+
+	// TODO(meng): Read destination db table and compare with expected count.
+}
+
+func (r *EthereumBlockHandlerTestRunner) TestHandlerInt64(handler HandlerInt64, expDestCount int) {
 	// TODO(meng): Traverse the source db table and for each block call the handler.
 
 	// TODO(meng): Read destination db table and compare with expected count.
