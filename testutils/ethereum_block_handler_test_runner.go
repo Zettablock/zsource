@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 	"testing"
 	"time"
@@ -24,6 +25,8 @@ type HandlerString func(blockNumber string, deps *utils.Deps) (bool, error)
 // int64 as block number.
 type HandlerInt64 func(blockNumber int64, deps *utils.Deps) (bool, error)
 
+type DepsChecker func(*utils.Deps) error
+
 const (
 	// We use the same version as our production database for testing.
 	postgresImage = "postgres:14.7"
@@ -39,7 +42,27 @@ const (
 	destDbPass = "destpass"
 )
 
-// The runner is responsible for setting up the source and destination database for testing the handlers.
+// The runner is responsible for setting up the source and destination database
+// for testing the handlers. Each test runner can be used to test multiple
+// handlers that shares the same source and destination databases.
+//
+// Typical usage of the EthereumBlockHandlerTestRunner:
+//
+// // Prepare the source data.
+// sourceData := []*ethereum.Block{}
+//
+// // Create a test runner with the source data.
+// runner := NewEthereumBlockHandlerTestRunner(t, sourceData)
+// defer runner.Close()
+//
+// // Define checker to verify the desired state of the destination database.
+// checker1 := func(deps *utils.Deps) error {}
+//
+// // Test multiple handlers
+// runner.TestHandlerString(handler1, checker1)
+// runner.TestHandlerString(handler2, checker2)
+//
+// See also examples in testexamples/ethereum_block_handler_test.go.
 type EthereumBlockHandlerTestRunner struct {
 	// The test state from the caller.
 	t *testing.T
@@ -75,21 +98,49 @@ func NewEthereumBlockHandlerTestRunner(t *testing.T, sourceData []*ethereum.Bloc
 	}
 }
 
-func (r *EthereumBlockHandlerTestRunner) TestHandlerString(handler HandlerString, expDestCount int) {
-	// TODO(meng): Traverse the source db table and for each block call the handler.
-
-	// TODO(meng): Read destination db table and compare with expected count.
+func (r *EthereumBlockHandlerTestRunner) TestHandlerString(handler HandlerString, checker DepsChecker) {
+	blocks, err := r.getSourceBlocks()
+	if err != nil {
+		r.t.Fatal(err)
+	}
+	for _, block := range blocks {
+		blockNumber := fmt.Sprintf("%d", block.Number)
+		handler(blockNumber, r.deps)
+	}
+	if checker != nil {
+		if err := checker(r.deps); err != nil {
+			r.t.Fatal(err)
+		}
+	}
 }
 
-func (r *EthereumBlockHandlerTestRunner) TestHandlerInt64(handler HandlerInt64, expDestCount int) {
-	// TODO(meng): Traverse the source db table and for each block call the handler.
-
-	// TODO(meng): Read destination db table and compare with expected count.
+func (r *EthereumBlockHandlerTestRunner) TestHandlerInt64(handler HandlerInt64, checker DepsChecker) {
+	blocks, err := r.getSourceBlocks()
+	if err != nil {
+		r.t.Fatal(err)
+	}
+	for _, block := range blocks {
+		handler(block.Number, r.deps)
+	}
+	if checker != nil {
+		if err := checker(r.deps); err != nil {
+			r.t.Fatal(err)
+		}
+	}
 }
 
 func (r *EthereumBlockHandlerTestRunner) Close() {
 	r.sourceContainer.Container.Terminate(context.Background())
 	r.destContainer.Container.Terminate(context.Background())
+}
+
+func (r *EthereumBlockHandlerTestRunner) getSourceBlocks() ([]*ethereum.Block, error) {
+	var blocks []*ethereum.Block
+	result := r.deps.SourceDB.Find(&blocks)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return blocks, nil
 }
 
 // Helper function to start a containerized postgres database as the source
