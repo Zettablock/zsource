@@ -31,7 +31,8 @@ const (
 	// We use the same version as our production database for testing.
 	postgresImage = "postgres:14.7"
 
-	initScriptDir = "../testdata/init"
+	initScriptDir         = "../testdata/init"
+	defaultInitScriptName = "ethereum_blocks.sql"
 
 	sourceDbName = "source"
 	sourceDbUser = "sourceuser"
@@ -52,7 +53,7 @@ const (
 // sourceData := []*ethereum.Block{}
 //
 // // Create a test runner with the source data.
-// runner := NewEthereumBlockHandlerTestRunner(t, sourceData)
+// runner := NewEthereumBlockHandlerTestRunner(t, sourceData, "")
 // defer runner.Close()
 //
 // // Define checker to verify the desired state of the destination database.
@@ -75,12 +76,16 @@ type EthereumBlockHandlerTestRunner struct {
 	deps *utils.Deps
 }
 
-func NewEthereumBlockHandlerTestRunner(t *testing.T, sourceData []*ethereum.Block) *EthereumBlockHandlerTestRunner {
+// Create a new EthereumBlockHandlerTestRunner. Currently the source database
+// can be customized by providing the source data. Currently the destination
+// database can be customized by providing a custom initialization script name.
+// The script must exist under the testdata/init directory.
+func NewEthereumBlockHandlerTestRunner(t *testing.T, sourceData []*ethereum.Block, destInitScriptName string) *EthereumBlockHandlerTestRunner {
 	sourceContainer, sourceDb, err := prepareSourceDb(sourceDbName, sourceDbUser, sourceDbPass, sourceData)
 	if err != nil {
 		t.Fatal(err)
 	}
-	destContainer, destDb, err := prepareDestDb(destDbName, destDbUser, destDbPass)
+	destContainer, destDb, err := prepareDestDb(destDbName, destDbUser, destDbPass, destInitScriptName)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,6 +104,7 @@ func NewEthereumBlockHandlerTestRunner(t *testing.T, sourceData []*ethereum.Bloc
 }
 
 func (r *EthereumBlockHandlerTestRunner) TestHandlerString(handler HandlerString, checker DepsChecker) {
+	r.t.Helper()
 	blocks, err := r.getSourceBlocks()
 	if err != nil {
 		r.t.Fatal(err)
@@ -151,7 +157,7 @@ func prepareSourceDb(
 	sourceDbPass string,
 	sourceData []*ethereum.Block) (*postgres.PostgresContainer, *gorm.DB, error) {
 
-	container, db, err := prepareDb(sourceDbName, sourceDbUser, sourceDbPass, "ethereum_blocks.sql")
+	container, db, err := prepareDb(sourceDbName, sourceDbUser, sourceDbPass, []string{defaultInitScriptName})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -172,9 +178,10 @@ func prepareSourceDb(
 func prepareDestDb(
 	destDbName string,
 	destDbUser string,
-	destDbPass string) (*postgres.PostgresContainer, *gorm.DB, error) {
+	destDbPass string,
+	destInitScriptName string) (*postgres.PostgresContainer, *gorm.DB, error) {
 
-	container, db, err := prepareDb(destDbName, destDbUser, destDbPass, "ethereum_blocks.sql")
+	container, db, err := prepareDb(destDbName, destDbUser, destDbPass, []string{defaultInitScriptName, destInitScriptName})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -184,7 +191,7 @@ func prepareDestDb(
 // Helper function to start a containerized postgres database. Caller can
 // provide a non-empty init script name (which must exist under the init
 // directory) to run some initialization commands.
-func prepareDb(db string, user string, pass string, init_script_name string) (*postgres.PostgresContainer, *gorm.DB, error) {
+func prepareDb(db string, user string, pass string, init_script_names []string) (*postgres.PostgresContainer, *gorm.DB, error) {
 	opts := []testcontainers.ContainerCustomizer{
 		testcontainers.WithImage(postgresImage),
 		postgres.WithDatabase(db),
@@ -195,8 +202,15 @@ func prepareDb(db string, user string, pass string, init_script_name string) (*p
 				WithOccurrence(2).
 				WithStartupTimeout(5 * time.Second)),
 	}
-	if init_script_name != "" {
-		opts = append(opts, postgres.WithInitScripts(filepath.Join(initScriptDir, init_script_name)))
+	if len(init_script_names) != 0 {
+		init_script_paths := make([]string, 0, len(init_script_names))
+		for _, name := range init_script_names {
+			// Empty file names are ignored.
+			if name != "" {
+				init_script_paths = append(init_script_paths, filepath.Join(initScriptDir, name))
+			}
+		}
+		opts = append(opts, postgres.WithInitScripts(init_script_paths...))
 	}
 	container, err := postgres.RunContainer(context.Background(), opts...)
 	if err != nil {
