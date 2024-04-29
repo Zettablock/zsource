@@ -13,6 +13,12 @@ import (
 // destination table and custom table.
 func FindBlockHandlerString(blockNumber string, deps *utils.Deps) (bool, error) {
 	if blockNumber == "2" {
+		// Exercise the code to read source logs table from the handler.
+		var logs []*ethereum.Log
+		deps.SourceDB.Where("block_number = ?", 2).Find(&logs)
+		if len(logs) == 0 {
+			return false, nil
+		}
 		deps.DestinationDB.Create(&ethereum.Block{Number: 2})
 		deps.DestinationDB.Exec("INSERT INTO dest_init_example VALUES (1, 'test1')")
 		return false, nil
@@ -33,12 +39,19 @@ func FindBlockHandlerInt64(blockNumber int64, deps *utils.Deps) (bool, error) {
 
 // Example of using the EthereumBlockHandlerTestRunner to test block handlers.
 func TestHandlers(t *testing.T) {
-	sourceData := []*ethereum.Block{
-		{Number: 1},
-		{Number: 2},
-		{Number: 3},
-	}
-	runner := testutils.NewEthereumBlockHandlerTestRunner(t, sourceData, "dest_init_example.sql")
+	sourceData := testutils.NewEthereumData(
+		[]*ethereum.Block{
+			{Number: 1},
+			{Number: 2},
+			{Number: 3},
+		},
+		[]*ethereum.Log{
+			{TransactionHash: "tx1", BlockNumber: 2, LogIndex: 1},
+			{TransactionHash: "tx1", BlockNumber: 2, LogIndex: 2},
+		},
+	)
+	destData := testutils.NewEthereumDataEmpty()
+	runner := testutils.NewEthereumBlockHandlerTestRunner(t, sourceData, "dest_init_example.sql", destData)
 	defer runner.Close()
 
 	// Returns a checker function that checks the table in destination database

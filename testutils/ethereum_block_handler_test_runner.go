@@ -49,11 +49,12 @@ const (
 //
 // Typical usage of the EthereumBlockHandlerTestRunner:
 //
-// // Prepare the source data.
-// sourceData := []*ethereum.Block{}
+// // Prepare the data.
+// sourceData := NewEthereumSourceData(...)
+// destData := NewEthereumSourceDataEmpty()
 //
 // // Create a test runner with the source data.
-// runner := NewEthereumBlockHandlerTestRunner(t, sourceData, "")
+// runner := NewEthereumBlockHandlerTestRunner(t, sourceData, "", destData)
 // defer runner.Close()
 //
 // // Define checker to verify the desired state of the destination database.
@@ -80,12 +81,17 @@ type EthereumBlockHandlerTestRunner struct {
 // can be customized by providing the source data. Currently the destination
 // database can be customized by providing a custom initialization script name.
 // The script must exist under the testdata/init directory.
-func NewEthereumBlockHandlerTestRunner(t *testing.T, sourceData []*ethereum.Block, destInitScriptName string) *EthereumBlockHandlerTestRunner {
+func NewEthereumBlockHandlerTestRunner(
+	t *testing.T,
+	sourceData *EthereumData,
+	destInitScriptName string,
+	destData *EthereumData) *EthereumBlockHandlerTestRunner {
+
 	sourceContainer, sourceDb, err := prepareSourceDb(sourceDbName, sourceDbUser, sourceDbPass, sourceData)
 	if err != nil {
 		t.Fatal(err)
 	}
-	destContainer, destDb, err := prepareDestDb(destDbName, destDbUser, destDbPass, destInitScriptName)
+	destContainer, destDb, err := prepareDestDb(destDbName, destDbUser, destDbPass, destInitScriptName, destData)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -155,19 +161,16 @@ func prepareSourceDb(
 	sourceDbName string,
 	sourceDbUser string,
 	sourceDbPass string,
-	sourceData []*ethereum.Block) (*postgres.PostgresContainer, *gorm.DB, error) {
+	sourceData *EthereumData) (*postgres.PostgresContainer, *gorm.DB, error) {
 
 	container, db, err := prepareDb(sourceDbName, sourceDbUser, sourceDbPass, []string{defaultInitScriptName})
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// Populate source data.
-	blockDao := ethereum.NewBlockDao(context.Background(), db)
-	for _, block := range sourceData {
-		if err := blockDao.Create(context.Background(), block); err != nil {
-			return nil, nil, err
-		}
+	err = sourceData.PopulateDb(db)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	return container, db, nil
@@ -179,12 +182,19 @@ func prepareDestDb(
 	destDbName string,
 	destDbUser string,
 	destDbPass string,
-	destInitScriptName string) (*postgres.PostgresContainer, *gorm.DB, error) {
+	destInitScriptName string,
+	destData *EthereumData) (*postgres.PostgresContainer, *gorm.DB, error) {
 
 	container, db, err := prepareDb(destDbName, destDbUser, destDbPass, []string{defaultInitScriptName, destInitScriptName})
 	if err != nil {
 		return nil, nil, err
 	}
+
+	err = destData.PopulateDb(db)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	return container, db, nil
 }
 
