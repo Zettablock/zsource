@@ -46,6 +46,11 @@ func (d *EthereumData) PopulateDb(container *postgres.PostgresContainer, db *gor
 // unlikely during test).
 func (d *EthereumData) initDb(container *postgres.PostgresContainer) error {
 	for schemaName := range d.data {
+		// We open a new gorm.DB for every schema because the AutoMigrate call
+		// doesn't support changing the default schema while we still want to use
+		// AutoMigrate for its ability to automatically create the corresponding
+		// table with only the model struct (no need to provide explicit CREATE
+		// TABLE statement).
 		db, err := GetDbFromContianer(container, schemaName)
 		if err != nil {
 			return err

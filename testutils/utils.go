@@ -9,6 +9,10 @@ import (
 	"gorm.io/gorm/schema"
 )
 
+// GetDbFromContianer creates a new gorm.DB from the provided container. If
+// schemaName is not empty, it will be used as schema name when accessing the
+// models without specifying the table name. Otherwise, table is default to be
+// in the public schema.
 func GetDbFromContianer(container *postgres.PostgresContainer, schemaName string) (*gorm.DB, error) {
 	url, err := container.ConnectionString(context.Background())
 	if err != nil {
