@@ -15,11 +15,11 @@ func FindBlockHandlerString(blockNumber string, deps *utils.Deps) (bool, error) 
 	if blockNumber == "2" {
 		// Exercise the code to read source logs table from the handler.
 		var logs []*ethereum.Log
-		deps.SourceDB.Where("block_number = ?", 2).Find(&logs)
+		deps.SourceDB.Table("ethereum.logs").Where("block_number = ?", 2).Find(&logs)
 		if len(logs) == 0 {
 			return false, nil
 		}
-		deps.DestinationDB.Create(&ethereum.Block{Number: 2})
+		deps.DestinationDB.Table("ethereum.blocks").Create(&ethereum.Block{Number: 2})
 		deps.DestinationDB.Exec("INSERT INTO dest_init_example VALUES (1, 'test1')")
 		return false, nil
 	}
@@ -30,7 +30,7 @@ func FindBlockHandlerString(blockNumber string, deps *utils.Deps) (bool, error) 
 // destination table and custom table.
 func FindBlockHandlerInt64(blockNumber int64, deps *utils.Deps) (bool, error) {
 	if blockNumber == 3 {
-		deps.DestinationDB.Create(&ethereum.Block{Number: 3})
+		deps.DestinationDB.Table("ethereum_mainnet.blocks").Create(&ethereum.Block{Number: 3})
 		deps.DestinationDB.Exec("INSERT INTO dest_init_example VALUES (2, 'test2')")
 		return false, nil
 	}
@@ -39,32 +39,46 @@ func FindBlockHandlerInt64(blockNumber int64, deps *utils.Deps) (bool, error) {
 
 // Example of using the EthereumBlockHandlerTestRunner to test block handlers.
 func TestHandlers(t *testing.T) {
-	sourceData := testutils.NewEthereumData(
-		[]*ethereum.Block{
-			{Number: 1},
-			{Number: 2},
-			{Number: 3},
-		},
-		[]*ethereum.Log{
-			{TransactionHash: "tx1", BlockNumber: 2, LogIndex: 1},
-			{TransactionHash: "tx1", BlockNumber: 2, LogIndex: 2},
-		},
-	)
-	destData := testutils.NewEthereumDataEmpty()
+	// Prepare source schema and data.
+	sourceData := testutils.NewEthereumData()
+	blocks := []*ethereum.Block{
+		{Number: 1},
+		{Number: 2},
+		{Number: 3},
+	}
+	logs := []*ethereum.Log{
+		{TransactionHash: "tx1", BlockNumber: 2, LogIndex: 1},
+		{TransactionHash: "tx1", BlockNumber: 2, LogIndex: 2},
+	}
+	sourceData.AddSchemaData("ethereum", blocks, logs)
+	sourceData.AddSchemaData("ethereum_mainnet", blocks, logs)
+	sourceData.AddSchemaData("ethereum_holesky", blocks, logs)
+
+	// Prepare dest schema.
+	destData := testutils.NewEthereumData()
+	destData.AddSchemaDataEmpty("ethereum")
+	destData.AddSchemaDataEmpty("ethereum_mainnet")
+	destData.AddSchemaDataEmpty("ethereum_holesky")
+
 	runner := testutils.NewEthereumBlockHandlerTestRunner(t, sourceData, "dest_init_example.sql", destData)
 	defer runner.Close()
 
 	// Returns a checker function that checks the table in destination database
 	// has expected count of rows.
-	checkerMaker := func(rowCountExp int64) testutils.DepsChecker {
+	checkerMaker := func(schemaName string, rowCountExp int64) testutils.DepsChecker {
 		return func(deps *utils.Deps) error {
 			// Verify row count in ethereum.blocks.
 			var rowCountActual int64
-			deps.DestinationDB.Table("ethereum.blocks").Count(&rowCountActual)
+			deps.DestinationDB.Table(schemaName + ".blocks").Count(&rowCountActual)
 			if rowCountActual != rowCountExp {
 				return fmt.Errorf("expected %d rows, got %d", rowCountExp, rowCountActual)
 			}
+			return nil
+		}
+	}
 
+	customTableCheckerMaker := func(rowCountExp int64) testutils.DepsChecker {
+		return func(deps *utils.Deps) error {
 			// Verify row count in custom table.
 			var customTableRowCountActual int64
 			deps.DestinationDB.Raw("SELECT COUNT(*) FROM dest_init_example").Scan(&customTableRowCountActual)
@@ -75,6 +89,6 @@ func TestHandlers(t *testing.T) {
 		}
 	}
 
-	runner.TestHandlerString(FindBlockHandlerString, checkerMaker(1))
-	runner.TestHandlerInt64(FindBlockHandlerInt64, checkerMaker(2))
+	runner.TestHandlerString("ethereum", FindBlockHandlerString, checkerMaker("ethereum", 1), customTableCheckerMaker(1))
+	runner.TestHandlerInt64("ethereum_mainnet", FindBlockHandlerInt64, checkerMaker("ethereum_mainnet", 1), customTableCheckerMaker(2))
 }
