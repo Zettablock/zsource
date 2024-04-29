@@ -7,7 +7,12 @@ import (
 )
 
 // These tables will be automatically created in each schema.
-var tableModels = []interface{}{&ethereum.Block{}, &ethereum.Log{}}
+var tableModels = []interface{}{
+	&ethereum.Block{},
+	&ethereum.Log{},
+	&ethereum.Trace{},
+	&ethereum.Transaction{},
+}
 
 // This struct is used to hold the data provided by the user for testing the
 // Ethereum handlers and initializing the database according to the data (by
