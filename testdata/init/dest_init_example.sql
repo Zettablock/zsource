@@ -1,0 +1,1 @@
+create table dest_init_example (id serial primary key, name text);
