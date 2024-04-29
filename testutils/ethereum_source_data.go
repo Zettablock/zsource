@@ -41,7 +41,9 @@ func (d *EthereumData) PopulateDb(container *postgres.PostgresContainer, db *gor
 		return err
 	}
 	for schemaName, schemaData := range d.data {
-		schemaData.PopulateDb(db, schemaName)
+		if err := schemaData.PopulateDb(db, schemaName); err != nil {
+			return err
+		}
 	}
 	return nil
 }
