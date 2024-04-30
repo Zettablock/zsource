@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"context"
+	"time"
 
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	gormpg "gorm.io/driver/postgres"
@@ -31,7 +32,11 @@ func GetDbFromContianer(container *postgres.PostgresContainer, schemaName string
 		return db, nil
 	}
 
-	db, err := gorm.Open(gormpg.Open(url))
+	db, err := gorm.Open(gormpg.Open(url), &gorm.Config{
+		NowFunc: func() time.Time {
+			return time.Now().UTC()
+		},
+	})
 	if err != nil {
 		return nil, err
 	}
