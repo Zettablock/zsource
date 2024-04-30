@@ -3,10 +3,11 @@ package ethereum
 import (
 	"context"
 	"fmt"
-	"github.com/lib/pq"
-	"gorm.io/gorm"
 	"math/rand"
 	"time"
+
+	"github.com/lib/pq"
+	"gorm.io/gorm"
 )
 
 // Log mapped from table <logs>
@@ -26,10 +27,10 @@ type Log struct {
 	ArgumentNames    pq.StringArray `gorm:"column:argument_names;type:text[]" json:"argument_names"`
 	ArgumentTypes    pq.StringArray `gorm:"column:argument_types;type:text[]" json:"argument_types"`
 	ArgumentValues   pq.StringArray `gorm:"column:argument_values;type:text[]" json:"argument_values"`
-	BlockTime        time.Time      `gorm:"column:block_time;not null" json:"block_time"`
+	BlockTime        time.Time      `gorm:"column:block_time;not null;type:timestamp" json:"block_time"`
 	DecodedFromAbi   bool           `gorm:"column:decoded_from_abi" json:"decoded_from_abi"`
-	ProcessTime      time.Time      `gorm:"column:process_time" json:"process_time"`
-	BlockDate        time.Time      `gorm:"column:block_date" json:"block_date"`
+	ProcessTime      time.Time      `gorm:"column:process_time;type:timestamp" json:"process_time"`
+	BlockDate        time.Time      `gorm:"column:block_date;type:timestamp" json:"block_date"`
 }
 
 // TableName Log's table name

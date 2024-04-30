@@ -3,10 +3,11 @@ package ethereum
 import (
 	"context"
 	"fmt"
-	"github.com/lib/pq"
-	"gorm.io/gorm"
 	"math/rand"
 	"time"
+
+	"github.com/lib/pq"
+	"gorm.io/gorm"
 )
 
 // Trace mapped from table <traces>
@@ -15,7 +16,7 @@ type Trace struct {
 	TransactionIndex  int32          `gorm:"column:transaction_index" json:"transaction_index"`
 	BlockNumber       int64          `gorm:"column:block_number;not null" json:"block_number"`
 	BlockHash         string         `gorm:"column:block_hash;not null" json:"block_hash"`
-	BlockTime         time.Time      `gorm:"column:block_time;not null" json:"block_time"`
+	BlockTime         time.Time      `gorm:"column:block_time;not null;type:timestamp" json:"block_time"`
 	FromAddress       string         `gorm:"column:from_address" json:"from_address"`
 	ToAddress         string         `gorm:"column:to_address" json:"to_address"`
 	Value             float64        `gorm:"column:value;not null" json:"value"`
@@ -43,8 +44,8 @@ type Trace struct {
 	TraceID           string         `gorm:"column:trace_id;primaryKey" json:"trace_id"`
 	TraceIndex        int32          `gorm:"column:trace_index" json:"trace_index"`
 	DecodedFromAbi    bool           `gorm:"column:decoded_from_abi" json:"decoded_from_abi"`
-	ProcessTime       time.Time      `gorm:"column:process_time" json:"process_time"`
-	BlockDate         time.Time      `gorm:"column:block_date;primaryKey" json:"block_date"`
+	ProcessTime       time.Time      `gorm:"column:process_time;type:timestamp" json:"process_time"`
+	BlockDate         time.Time      `gorm:"column:block_date;primaryKey;type:timestamp" json:"block_date"`
 }
 
 // TableName Trace's table name
