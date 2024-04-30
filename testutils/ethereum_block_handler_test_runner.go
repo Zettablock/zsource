@@ -110,9 +110,16 @@ func NewEthereumBlockHandlerTestRunner(
 // Unit test a handler that takes a string as block number. The schemaName is
 // specified so that the corresponding blocks table in the schema is read. This
 // is similar to the option "SourceSchema" in the config.
-func (r *EthereumBlockHandlerTestRunner) TestHandlerString(schemaName string, handler HandlerString, checkers ...DepsChecker) {
+func (r *EthereumBlockHandlerTestRunner) TestHandlerString(sourceSchemaName string, destSchemaName string, handler HandlerString, checkers ...DepsChecker) {
 	r.t.Helper()
-	blocks, err := r.getSourceBlocks(schemaName)
+
+	oldDestSchema := r.deps.DestinationDBSchema
+	r.deps.DestinationDBSchema = destSchemaName
+	defer func() {
+		r.deps.DestinationDBSchema = oldDestSchema
+	}()
+
+	blocks, err := r.getSourceBlocks(sourceSchemaName)
 	if err != nil {
 		r.t.Fatal(err)
 	}
@@ -130,9 +137,16 @@ func (r *EthereumBlockHandlerTestRunner) TestHandlerString(schemaName string, ha
 // Unit test a handler that takes an int64 as block number. The schemaName is
 // specified so that the corresponding blocks table in the schema is read. This
 // is similar to the option "SourceSchema" in the config.
-func (r *EthereumBlockHandlerTestRunner) TestHandlerInt64(schemaName string, handler HandlerInt64, checkers ...DepsChecker) {
+func (r *EthereumBlockHandlerTestRunner) TestHandlerInt64(sourceSchemaName string, destSchemaName string, handler HandlerInt64, checkers ...DepsChecker) {
 	r.t.Helper()
-	blocks, err := r.getSourceBlocks(schemaName)
+
+	oldDestSchema := r.deps.DestinationDBSchema
+	r.deps.DestinationDBSchema = destSchemaName
+	defer func() {
+		r.deps.DestinationDBSchema = oldDestSchema
+	}()
+
+	blocks, err := r.getSourceBlocks(sourceSchemaName)
 	if err != nil {
 		r.t.Fatal(err)
 	}
