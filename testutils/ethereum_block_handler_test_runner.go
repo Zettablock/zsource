@@ -12,9 +12,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
-	gormpg "gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/schema"
 )
 
 // HandlerString is the signature of the handler function that takes a
@@ -31,8 +29,7 @@ const (
 	// We use the same version as our production database for testing.
 	postgresImage = "postgres:14.7"
 
-	initScriptDir         = "../testdata/init"
-	defaultInitScriptName = "ethereum_blocks.sql"
+	initScriptDir = "../testdata/init"
 
 	sourceDbName = "source"
 	sourceDbUser = "sourceuser"
@@ -49,18 +46,20 @@ const (
 //
 // Typical usage of the EthereumBlockHandlerTestRunner:
 //
-// // Prepare the source data.
-// sourceData := []*ethereum.Block{}
+// // Prepare the data.
+// sourceData := NewEthereumSourceData(...)
+// destData := NewEthereumSourceDataEmpty()
 //
 // // Create a test runner with the source data.
-// runner := NewEthereumBlockHandlerTestRunner(t, sourceData, "")
+// runner := NewEthereumBlockHandlerTestRunner(t, sourceData, "", destData)
 // defer runner.Close()
 //
-// // Define checker to verify the desired state of the destination database.
+// // Define checkers to verify the desired state of the destination database.
 // checker1 := func(deps *utils.Deps) error {}
+// checker2 := func(deps *utils.Deps) error {}
 //
 // // Test multiple handlers
-// runner.TestHandlerString(handler1, checker1)
+// runner.TestHandlerString(handler1, checker1, checker2)
 // runner.TestHandlerString(handler2, checker2)
 //
 // See also examples in testexamples/ethereum_block_handler_test.go.
@@ -80,12 +79,17 @@ type EthereumBlockHandlerTestRunner struct {
 // can be customized by providing the source data. Currently the destination
 // database can be customized by providing a custom initialization script name.
 // The script must exist under the testdata/init directory.
-func NewEthereumBlockHandlerTestRunner(t *testing.T, sourceData []*ethereum.Block, destInitScriptName string) *EthereumBlockHandlerTestRunner {
+func NewEthereumBlockHandlerTestRunner(
+	t *testing.T,
+	sourceData *EthereumData,
+	destInitScriptName string,
+	destData *EthereumData) *EthereumBlockHandlerTestRunner {
+
 	sourceContainer, sourceDb, err := prepareSourceDb(sourceDbName, sourceDbUser, sourceDbPass, sourceData)
 	if err != nil {
 		t.Fatal(err)
 	}
-	destContainer, destDb, err := prepareDestDb(destDbName, destDbUser, destDbPass, destInitScriptName)
+	destContainer, destDb, err := prepareDestDb(destDbName, destDbUser, destDbPass, destInitScriptName, destData)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,9 +107,12 @@ func NewEthereumBlockHandlerTestRunner(t *testing.T, sourceData []*ethereum.Bloc
 	}
 }
 
-func (r *EthereumBlockHandlerTestRunner) TestHandlerString(handler HandlerString, checker DepsChecker) {
+// Unit test a handler that takes a string as block number. The schemaName is
+// specified so that the corresponding blocks table in the schema is read. This
+// is similar to the option "SourceSchema" in the config.
+func (r *EthereumBlockHandlerTestRunner) TestHandlerString(schemaName string, handler HandlerString, checkers ...DepsChecker) {
 	r.t.Helper()
-	blocks, err := r.getSourceBlocks()
+	blocks, err := r.getSourceBlocks(schemaName)
 	if err != nil {
 		r.t.Fatal(err)
 	}
@@ -113,22 +120,26 @@ func (r *EthereumBlockHandlerTestRunner) TestHandlerString(handler HandlerString
 		blockNumber := fmt.Sprintf("%d", block.Number)
 		handler(blockNumber, r.deps)
 	}
-	if checker != nil {
+	for _, checker := range checkers {
 		if err := checker(r.deps); err != nil {
 			r.t.Fatal(err)
 		}
 	}
 }
 
-func (r *EthereumBlockHandlerTestRunner) TestHandlerInt64(handler HandlerInt64, checker DepsChecker) {
-	blocks, err := r.getSourceBlocks()
+// Unit test a handler that takes an int64 as block number. The schemaName is
+// specified so that the corresponding blocks table in the schema is read. This
+// is similar to the option "SourceSchema" in the config.
+func (r *EthereumBlockHandlerTestRunner) TestHandlerInt64(schemaName string, handler HandlerInt64, checkers ...DepsChecker) {
+	r.t.Helper()
+	blocks, err := r.getSourceBlocks(schemaName)
 	if err != nil {
 		r.t.Fatal(err)
 	}
 	for _, block := range blocks {
 		handler(block.Number, r.deps)
 	}
-	if checker != nil {
+	for _, checker := range checkers {
 		if err := checker(r.deps); err != nil {
 			r.t.Fatal(err)
 		}
@@ -140,9 +151,9 @@ func (r *EthereumBlockHandlerTestRunner) Close() {
 	r.destContainer.Container.Terminate(context.Background())
 }
 
-func (r *EthereumBlockHandlerTestRunner) getSourceBlocks() ([]*ethereum.Block, error) {
+func (r *EthereumBlockHandlerTestRunner) getSourceBlocks(schemaName string) ([]*ethereum.Block, error) {
 	var blocks []*ethereum.Block
-	result := r.deps.SourceDB.Find(&blocks)
+	result := r.deps.SourceDB.Table(schemaName + ".blocks").Find(&blocks)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -155,19 +166,16 @@ func prepareSourceDb(
 	sourceDbName string,
 	sourceDbUser string,
 	sourceDbPass string,
-	sourceData []*ethereum.Block) (*postgres.PostgresContainer, *gorm.DB, error) {
+	sourceData *EthereumData) (*postgres.PostgresContainer, *gorm.DB, error) {
 
-	container, db, err := prepareDb(sourceDbName, sourceDbUser, sourceDbPass, []string{defaultInitScriptName})
+	container, db, err := prepareDb(sourceDbName, sourceDbUser, sourceDbPass, []string{})
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// Populate source data.
-	blockDao := ethereum.NewBlockDao(context.Background(), db)
-	for _, block := range sourceData {
-		if err := blockDao.Create(context.Background(), block); err != nil {
-			return nil, nil, err
-		}
+	err = sourceData.PopulateDb(container, db)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	return container, db, nil
@@ -179,22 +187,29 @@ func prepareDestDb(
 	destDbName string,
 	destDbUser string,
 	destDbPass string,
-	destInitScriptName string) (*postgres.PostgresContainer, *gorm.DB, error) {
+	destInitScriptName string,
+	destData *EthereumData) (*postgres.PostgresContainer, *gorm.DB, error) {
 
-	container, db, err := prepareDb(destDbName, destDbUser, destDbPass, []string{defaultInitScriptName, destInitScriptName})
+	container, db, err := prepareDb(destDbName, destDbUser, destDbPass, []string{destInitScriptName})
 	if err != nil {
 		return nil, nil, err
 	}
+
+	err = destData.PopulateDb(container, db)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	return container, db, nil
 }
 
 // Helper function to start a containerized postgres database. Caller can
 // provide a non-empty init script name (which must exist under the init
 // directory) to run some initialization commands.
-func prepareDb(db string, user string, pass string, init_script_names []string) (*postgres.PostgresContainer, *gorm.DB, error) {
+func prepareDb(dbName string, user string, pass string, init_script_names []string) (*postgres.PostgresContainer, *gorm.DB, error) {
 	opts := []testcontainers.ContainerCustomizer{
 		testcontainers.WithImage(postgresImage),
-		postgres.WithDatabase(db),
+		postgres.WithDatabase(dbName),
 		postgres.WithUsername(user),
 		postgres.WithPassword(pass),
 		testcontainers.WithWaitStrategy(
@@ -216,16 +231,9 @@ func prepareDb(db string, user string, pass string, init_script_names []string) 
 	if err != nil {
 		return nil, nil, err
 	}
-	sourceUrl, err := container.ConnectionString(context.Background())
+	db, err := GetDbFromContianer(container, "")
 	if err != nil {
 		return nil, nil, err
 	}
-	sourceDb, err := gorm.Open(
-		gormpg.Open(sourceUrl),
-		&gorm.Config{NamingStrategy: schema.NamingStrategy{TablePrefix: "ethereum."}},
-	)
-	if err != nil {
-		return nil, nil, err
-	}
-	return container, sourceDb, nil
+	return container, db, nil
 }
