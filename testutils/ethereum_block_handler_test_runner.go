@@ -12,6 +12,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
+	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 )
 
@@ -97,6 +98,7 @@ func NewEthereumBlockHandlerTestRunner(
 	deps := &utils.Deps{
 		SourceDB:      sourceDb,
 		DestinationDB: destDb,
+		Logger:        slog.Default(),
 	}
 
 	return &EthereumBlockHandlerTestRunner{

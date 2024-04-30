@@ -21,6 +21,7 @@ func FindBlockHandlerString(blockNumber string, deps *utils.Deps) (bool, error) 
 		}
 		deps.DestinationDB.Table("ethereum.blocks").Create(&ethereum.Block{Number: 2})
 		deps.DestinationDB.Exec("INSERT INTO dest_init_example VALUES (1, 'test1')")
+		deps.Logger.Info("successfully processed block 2")
 		return false, nil
 	}
 	return false, nil
