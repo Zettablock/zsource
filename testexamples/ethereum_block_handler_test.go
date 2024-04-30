@@ -3,6 +3,7 @@ package examples
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/Zettablock/zsource/dao/ethereum"
 	"github.com/Zettablock/zsource/testutils"
@@ -38,6 +39,16 @@ func FindBlockHandlerInt64(blockNumber int64, deps *utils.Deps) (bool, error) {
 	return false, nil
 }
 
+func TimeHandlerInt64(blockNumber int64, deps *utils.Deps) (bool, error) {
+	if blockNumber == 3 {
+		var logs []*ethereum.Log
+		deps.SourceDB.Raw("SELECT * FROM ethereum.logs").Scan(&logs)
+		fmt.Printf("logs: %v\n", logs[0].BlockTime)
+		return false, nil
+	}
+	return false, nil
+}
+
 // Example of using the EthereumBlockHandlerTestRunner to test block handlers.
 func TestHandlers(t *testing.T) {
 	// Prepare source schema and data.
@@ -48,8 +59,8 @@ func TestHandlers(t *testing.T) {
 		{Number: 3},
 	}
 	logs := []*ethereum.Log{
-		{TransactionHash: "tx1", BlockNumber: 2, LogIndex: 1},
-		{TransactionHash: "tx1", BlockNumber: 2, LogIndex: 2},
+		{TransactionHash: "tx1", BlockNumber: 2, LogIndex: 1, BlockTime: time.Date(2024, time.April, 16, 10, 30, 0, 0, time.UTC)},
+		{TransactionHash: "tx1", BlockNumber: 2, LogIndex: 2, BlockTime: time.Date(2024, time.April, 16, 10, 30, 0, 0, time.UTC)},
 	}
 	sourceData.AddSchemaData("ethereum", blocks, logs)
 	sourceData.AddSchemaData("ethereum_mainnet", blocks, logs)
@@ -92,4 +103,5 @@ func TestHandlers(t *testing.T) {
 
 	runner.TestHandlerString("ethereum", "ethereum_dest", FindBlockHandlerString, checkerMaker("ethereum", 1), customTableCheckerMaker(1))
 	runner.TestHandlerInt64("ethereum_mainnet", "ethereum_dest", FindBlockHandlerInt64, checkerMaker("ethereum_mainnet", 1), customTableCheckerMaker(2))
+	runner.TestHandlerInt64("ethereum", "ethereum", TimeHandlerInt64)
 }

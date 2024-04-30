@@ -3,10 +3,11 @@ package ethereum
 import (
 	"context"
 	"fmt"
-	"github.com/lib/pq"
-	"gorm.io/gorm"
 	"math/rand"
 	"time"
+
+	"github.com/lib/pq"
+	"gorm.io/gorm"
 )
 
 // Block mapped from table <blocks>
@@ -28,13 +29,13 @@ type Block struct {
 	GasLimit          int64          `gorm:"column:gas_limit;not null" json:"gas_limit"`
 	GasUsed           int64          `gorm:"column:gas_used;not null" json:"gas_used"`
 	BaseFeePerGas     int64          `gorm:"column:base_fee_per_gas" json:"base_fee_per_gas"`
-	Timestamp         time.Time      `gorm:"column:timestamp;not null" json:"timestamp"`
+	Timestamp         time.Time      `gorm:"column:timestamp;not null;type:timestamp" json:"timestamp"`
 	Uncles            pq.StringArray `gorm:"column:uncles;type:text[]" json:"uncles"`
 	NumOfTransactions int32          `gorm:"column:num_of_transactions;not null" json:"num_of_transactions"`
 	ExtraDataRaw      string         `gorm:"column:extra_data_raw" json:"extra_data_raw"`
 	ExtraData         string         `gorm:"column:extra_data" json:"extra_data"`
-	ProcessTime       time.Time      `gorm:"column:process_time" json:"process_time"`
-	BlockDate         time.Time      `gorm:"column:block_date" json:"block_date"`
+	ProcessTime       time.Time      `gorm:"column:process_time;type:timestamp" json:"process_time"`
+	BlockDate         time.Time      `gorm:"column:block_date;type:timestamp" json:"block_date"`
 }
 
 // TableName Block's table name

@@ -14,7 +14,7 @@ import (
 // models without specifying the table name. Otherwise, table is default to be
 // in the public schema.
 func GetDbFromContianer(container *postgres.PostgresContainer, schemaName string) (*gorm.DB, error) {
-	url, err := container.ConnectionString(context.Background(), "TimeZone=UTC")
+	url, err := container.ConnectionString(context.Background())
 	if err != nil {
 		return nil, err
 	}
