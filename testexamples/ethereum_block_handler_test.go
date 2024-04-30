@@ -89,6 +89,6 @@ func TestHandlers(t *testing.T) {
 		}
 	}
 
-	runner.TestHandlerString("ethereum", FindBlockHandlerString, checkerMaker("ethereum", 1), customTableCheckerMaker(1))
-	runner.TestHandlerInt64("ethereum_mainnet", FindBlockHandlerInt64, checkerMaker("ethereum_mainnet", 1), customTableCheckerMaker(2))
+	runner.TestHandlerString("ethereum", "ethereum_dest", FindBlockHandlerString, checkerMaker("ethereum", 1), customTableCheckerMaker(1))
+	runner.TestHandlerInt64("ethereum_mainnet", "ethereum_dest", FindBlockHandlerInt64, checkerMaker("ethereum_mainnet", 1), customTableCheckerMaker(2))
 }
