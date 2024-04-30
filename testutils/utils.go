@@ -2,7 +2,6 @@ package testutils
 
 import (
 	"context"
-	"time"
 
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	gormpg "gorm.io/driver/postgres"
@@ -15,7 +14,7 @@ import (
 // models without specifying the table name. Otherwise, table is default to be
 // in the public schema.
 func GetDbFromContianer(container *postgres.PostgresContainer, schemaName string) (*gorm.DB, error) {
-	url, err := container.ConnectionString(context.Background())
+	url, err := container.ConnectionString(context.Background(), "TimeZone=UTC")
 	if err != nil {
 		return nil, err
 	}
@@ -32,11 +31,7 @@ func GetDbFromContianer(container *postgres.PostgresContainer, schemaName string
 		return db, nil
 	}
 
-	db, err := gorm.Open(gormpg.Open(url), &gorm.Config{
-		NowFunc: func() time.Time {
-			return time.Now().UTC()
-		},
-	})
+	db, err := gorm.Open(gormpg.Open(url), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
