@@ -12,6 +12,7 @@ type PipelineConfig struct {
 	Org            string         `yaml:"org"`
 	Kind           string         `yaml:"kind"`
 	Version        int            `yaml:"version"`
+	Environment    string         `yaml:"environment"`
 	Name           string         `yaml:"name"`
 	Network        string         `yaml:"network"`
 	Initialization Initialization `yaml:"initialization"`
@@ -65,7 +66,6 @@ func (c *PipelineConfig) Validate() error {
 	if c.Network == "" {
 		return errors.New("network should not be empty")
 	}
-
 	if c.Source.Schema == "" {
 		return errors.New("source db schema should not be empty")
 	}
@@ -118,6 +118,10 @@ func (c *PipelineConfig) GetKind() string {
 
 func (c *PipelineConfig) GetNetwork() string {
 	return c.Network
+}
+
+func (c *PipelineConfig) GetEnvironment() string {
+	return c.Environment
 }
 
 func (c *PipelineConfig) GetSourceSchema() string {
