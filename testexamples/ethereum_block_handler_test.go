@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Zettablock/zsource/configs"
 	"github.com/Zettablock/zsource/dao/ethereum"
 	"github.com/Zettablock/zsource/testutils"
 	"github.com/Zettablock/zsource/utils"
@@ -13,6 +14,9 @@ import (
 // A simple handler that looks for block 2 and if found writes it to the
 // destination table and custom table.
 func FindBlockHandlerString(blockNumber string, deps *utils.Deps) (bool, error) {
+	if deps.Config.Environment != "unittest" {
+		return false, nil
+	}
 	if blockNumber == "2" {
 		// Exercise the code to read source logs table from the handler.
 		var logs []*ethereum.Log
@@ -72,7 +76,10 @@ func TestHandlers(t *testing.T) {
 	destData.AddSchemaDataEmpty("ethereum_mainnet")
 	destData.AddSchemaDataEmpty("ethereum_holesky")
 
-	runner := testutils.NewEthereumBlockHandlerTestRunner(t, sourceData, "dest_init_example.sql", destData)
+	// Prepare pipeline config.
+	config := &configs.PipelineConfig{Environment: "unittest"}
+
+	runner := testutils.NewEthereumBlockHandlerTestRunner(t, config, sourceData, "dest_init_example.sql", destData)
 	defer runner.Close()
 
 	// Returns a checker function that checks the table in destination database
