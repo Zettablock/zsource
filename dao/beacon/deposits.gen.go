@@ -6,6 +6,8 @@ package beacon
 
 import (
 	"time"
+
+	"github.com/lib/pq"
 )
 
 const TableNameDeposit = "deposits"
@@ -18,7 +20,7 @@ type Deposit struct {
 	WithdrawalCredentials string    `gorm:"column:withdrawal_credentials" json:"withdrawal_credentials"`
 	Amount                float64   `gorm:"column:amount" json:"amount"`
 	Signature             string    `gorm:"column:signature" json:"signature"`
-	Proof                 string    `gorm:"column:proof" json:"proof"`
+	Proof                 pq.StringArray    `gorm:"column:proof;type:text[]" json:"proof"`
 	BlockTime             time.Time `gorm:"column:block_time;not null" json:"block_time"`
 	BlockNumber           int64     `gorm:"column:block_number;not null" json:"block_number"`
 	BlockHash             string    `gorm:"column:block_hash;not null" json:"block_hash"`
