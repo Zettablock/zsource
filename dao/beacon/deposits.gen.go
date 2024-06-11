@@ -21,7 +21,7 @@ type Deposit struct {
 	Amount                float64   `gorm:"column:amount" json:"amount"`
 	Signature             string    `gorm:"column:signature" json:"signature"`
 	Proof                 pq.StringArray    `gorm:"column:proof;type:text[]" json:"proof"`
-	BlockTime             time.Time `gorm:"column:block_time;not null" json:"block_time"`
+	BlockTime             time.Time `gorm:"column:block_time;not null;type:timestamp" json:"block_time"`
 	BlockNumber           int64     `gorm:"column:block_number;not null" json:"block_number"`
 	BlockHash             string    `gorm:"column:block_hash;not null" json:"block_hash"`
 	BlockDate             time.Time `gorm:"column:block_date;not null" json:"block_date"`

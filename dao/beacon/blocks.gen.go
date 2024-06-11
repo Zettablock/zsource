@@ -25,7 +25,7 @@ type Block struct {
 	SyncCommitteeBits          string    `gorm:"column:sync_committee_bits" json:"sync_committee_bits"`
 	SyncCommitteeSignature     string    `gorm:"column:sync_committee_signature" json:"sync_committee_signature"`
 	ParentHash                 string    `gorm:"column:parent_hash;not null" json:"parent_hash"`
-	BlockTime                  time.Time `gorm:"column:block_time;not null" json:"block_time"`
+	BlockTime                  time.Time `gorm:"column:block_time;not null;type:timestamp" json:"block_time"`
 	BlockNumber                int64     `gorm:"column:block_number;not null" json:"block_number"`
 	BlockHash                  string    `gorm:"column:block_hash;not null" json:"block_hash"`
 	AttestationsCount          int32     `gorm:"column:attestations_count;not null" json:"attestations_count"`
