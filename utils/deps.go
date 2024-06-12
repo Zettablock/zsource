@@ -1,10 +1,11 @@
 package utils
 
 import (
+	"plugin"
+
 	"github.com/Zettablock/zsource/configs"
 	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
-	"plugin"
 )
 
 type Deps struct {

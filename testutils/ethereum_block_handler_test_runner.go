@@ -42,7 +42,7 @@ const (
 	destDbPass = "destpass"
 )
 
-// The runner is responsible for setting up the source and destination database
+// EthereumBlockHandlerTestRunner is responsible for setting up the source and destination database
 // for testing the handlers. Each test runner can be used to test multiple
 // handlers that shares the same source and destination databases.
 //
@@ -77,7 +77,7 @@ type EthereumBlockHandlerTestRunner struct {
 	deps *utils.Deps
 }
 
-// Create a new EthereumBlockHandlerTestRunner. Currently the source database
+// NewEthereumBlockHandlerTestRunner creates a new EthereumBlockHandlerTestRunner. Currently the source database
 // can be customized by providing the source data. Currently the destination
 // database can be customized by providing a custom initialization script name.
 // The script must exist under the testdata/init directory.
@@ -112,7 +112,7 @@ func NewEthereumBlockHandlerTestRunner(
 	}
 }
 
-// Unit test a handler that takes a string as block number. The schemaName is
+// TestHandlerString is a unit test a handler that takes a string as block number. The schemaName is
 // specified so that the corresponding blocks table in the schema is read. This
 // is similar to the option "SourceSchema" in the config.
 func (r *EthereumBlockHandlerTestRunner) TestHandlerString(sourceSchemaName string, destSchemaName string, handler HandlerString, checkers ...DepsChecker) {
@@ -139,7 +139,7 @@ func (r *EthereumBlockHandlerTestRunner) TestHandlerString(sourceSchemaName stri
 	}
 }
 
-// Unit test a handler that takes an int64 as block number. The schemaName is
+// TestHandlerInt64 is a unit test a handler that takes an int64 as block number. The schemaName is
 // specified so that the corresponding blocks table in the schema is read. This
 // is similar to the option "SourceSchema" in the config.
 func (r *EthereumBlockHandlerTestRunner) TestHandlerInt64(sourceSchemaName string, destSchemaName string, handler HandlerInt64, checkers ...DepsChecker) {

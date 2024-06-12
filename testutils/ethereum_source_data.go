@@ -14,7 +14,7 @@ var tableModels = []interface{}{
 	&ethereum.Transaction{},
 }
 
-// This struct is used to hold the data provided by the user for testing the
+// EthereumData is used to hold the data provided by the user for testing the
 // Ethereum handlers and initializing the database according to the data (by
 // creating tables and inserting data).
 type EthereumData struct {
@@ -72,7 +72,7 @@ func (d *EthereumData) initDb(container *postgres.PostgresContainer) error {
 	return nil
 }
 
-// Data for a single schema.
+// EthereumSchemaData is for a single schema.
 type EthereumSchemaData struct {
 	schemaName string
 	blocks     []*ethereum.Block
@@ -93,7 +93,7 @@ func NewEthereumSchemaData(schemaName string, blocks []*ethereum.Block, logs []*
 	}
 }
 
-// Populates the database with the blocks and logs provided.
+// PopulateDb populates the database with the blocks and logs provided.
 func (d *EthereumSchemaData) PopulateDb(db *gorm.DB, schemaName string) error {
 	if len(d.blocks) != 0 {
 		if err := db.Table(schemaName + ".blocks").Create(d.blocks).Error; err != nil {
