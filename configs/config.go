@@ -6,6 +6,14 @@ import (
 	"strings"
 )
 
+type SourceType string
+
+const (
+	DB    SourceType = "db"
+	RPC   SourceType = "rpc"
+	Mixed SourceType = "mixed"
+)
+
 // PipelineConfig https://zhwt.github.io/yaml-to-go/
 type PipelineConfig struct {
 	SpecVersion    string         `yaml:"specVersion"`
@@ -28,10 +36,13 @@ type Initialization struct {
 }
 
 type Source struct {
-	Schema     string   `yaml:"schema"`
-	SourceDB   string   `yaml:"sourceDB"`
-	StartBlock int      `yaml:"startBlock"`
-	Addresses  []string `yaml:"addresses"`
+	Schema      string     `yaml:"schema"`
+	SourceDB    string     `yaml:"sourceDB"`
+	StartBlock  int        `yaml:"startBlock"`
+	Addresses   []string   `yaml:"addresses"`
+	EthereumRPC string     `yaml:"ethereumRPC"`
+	ABIFile     string     `yaml:"abiFile"`
+	Type        SourceType `yaml:"type"`
 }
 
 type Metadata struct {
@@ -68,6 +79,9 @@ func (c *PipelineConfig) Validate() error {
 	}
 	if c.Source.Schema == "" {
 		return errors.New("source db schema should not be empty")
+	}
+	if c.Source.Type == "" {
+		c.Source.Type = Mixed // source type is mixed by default if not set
 	}
 
 	if c.Source.SourceDB == "" {
