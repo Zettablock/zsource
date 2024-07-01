@@ -4,6 +4,7 @@ import (
 	"plugin"
 
 	"github.com/Zettablock/zsource/configs"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 )
@@ -16,4 +17,6 @@ type Deps struct {
 	Logger              *slog.Logger
 	Handlers            map[string]plugin.Symbol
 	Config              *configs.PipelineConfig
+	EthClient           *ethclient.Client
+	Decoder             *Decoder
 }
