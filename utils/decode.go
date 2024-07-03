@@ -19,40 +19,30 @@ func NewDecoder(abi abi.ABI) *Decoder {
 	return &Decoder{ABI: abi}
 }
 
-func (d *Decoder) DecodeLog(vLog types.Log, evtName string) (*ethereum.Log, dao.Event, error) {
-	decodedLog := &ethereum.Log{}
+// DecodeLog decodes a raw log and generate a dao.Event based on the event name
+func (d *Decoder) DecodeLog(vLog types.Log, rawLog *ethereum.Log, evtName string) (dao.Event, error) {
 	boundContract := bind.NewBoundContract(common.Address{}, d.ABI, nil, nil, nil)
 	events := d.ABI.Events
 	evt := dao.Event{}
 
 	for name, event := range events {
 		if event.ID.Hex() == vLog.Topics[0].Hex() && event.Name == evtName {
-			decodedLog.BlockNumber = int64(vLog.BlockNumber)
-			decodedLog.BlockHash = vLog.BlockHash.Hex()
-			decodedLog.TransactionHash = vLog.TxHash.Hex()
-			decodedLog.TransactionIndex = int32(vLog.TxIndex)
-			decodedLog.LogIndex = int32(vLog.Index)
-			decodedLog.Event = name
-			decodedLog.EventSignature = event.Sig
-			decodedLog.DecodedFromAbi = true
-			decodedLog.ContractAddress = vLog.Address.Hex()
-
-			for _, topic := range vLog.Topics {
-				decodedLog.Topics = append(decodedLog.Topics, topic.Hex())
-			}
+			rawLog.Event = name
+			rawLog.EventSignature = event.Sig
 
 			err := boundContract.UnpackLogIntoMap(evt, name, vLog)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 			inputs := event.Inputs
 			for _, input := range inputs {
-				decodedLog.ArgumentNames = append(decodedLog.ArgumentNames, input.Name)
-				decodedLog.ArgumentTypes = append(decodedLog.ArgumentTypes, input.Type.String())
-				decodedLog.ArgumentValues = append(decodedLog.ArgumentValues, fmt.Sprint(evt[input.Name]))
+				rawLog.ArgumentNames = append(rawLog.ArgumentNames, input.Name)
+				rawLog.ArgumentTypes = append(rawLog.ArgumentTypes, input.Type.String())
+				rawLog.ArgumentValues = append(rawLog.ArgumentValues, fmt.Sprint(evt[input.Name]))
 			}
-			return decodedLog, evt, nil
+			rawLog.DecodedFromAbi = true
+			return evt, nil
 		}
 	}
-	return nil, nil, nil
+	return nil, nil
 }
