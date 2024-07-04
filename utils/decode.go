@@ -19,14 +19,14 @@ func NewDecoder(abi abi.ABI) *Decoder {
 	return &Decoder{ABI: abi}
 }
 
-// DecodeLog decodes a raw log and generate a dao.Event based on the event name
-func (d *Decoder) DecodeLog(vLog types.Log, rawLog *ethereum.Log, evtName string) (dao.Event, error) {
+// DecodeLog decodes a raw log and generate a dao.Event
+func (d *Decoder) DecodeLog(vLog types.Log, rawLog *ethereum.Log) (dao.Event, error) {
 	boundContract := bind.NewBoundContract(common.Address{}, d.ABI, nil, nil, nil)
 	events := d.ABI.Events
 	evt := dao.Event{}
 
 	for name, event := range events {
-		if event.ID.Hex() == vLog.Topics[0].Hex() && event.Name == evtName {
+		if event.ID.Hex() == vLog.Topics[0].Hex() {
 			rawLog.Event = name
 			rawLog.EventSignature = event.Sig
 

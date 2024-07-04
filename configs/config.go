@@ -9,9 +9,8 @@ import (
 type SourceType string
 
 const (
-	DB    SourceType = "db"
-	RPC   SourceType = "rpc"
-	Mixed SourceType = "mixed"
+	DB  SourceType = "db"
+	RPC SourceType = "rpc"
 )
 
 // PipelineConfig https://zhwt.github.io/yaml-to-go/
@@ -81,7 +80,7 @@ func (c *PipelineConfig) Validate() error {
 		return errors.New("source db schema should not be empty")
 	}
 	if c.Source.Type == "" {
-		c.Source.Type = Mixed // source type is mixed by default if not set
+		c.Source.Type = DB // source type is DB by default if not set
 	}
 
 	if c.Source.SourceDB == "" {
