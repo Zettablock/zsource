@@ -35,13 +35,13 @@ type Initialization struct {
 }
 
 type Source struct {
-	Schema      string     `yaml:"schema"`
-	SourceDB    string     `yaml:"sourceDB"`
-	StartBlock  int        `yaml:"startBlock"`
-	Addresses   []string   `yaml:"addresses"`
-	EthereumRPC string     `yaml:"ethereumRPC"`
-	ABIFile     string     `yaml:"abiFile"`
-	Type        SourceType `yaml:"type"`
+	Schema     string     `yaml:"schema"`
+	SourceDB   string     `yaml:"sourceDB"`
+	StartBlock int        `yaml:"startBlock"`
+	Addresses  []string   `yaml:"addresses"`
+	RPC        string     `yaml:"rpc"`
+	ABIFile    string     `yaml:"abiFile"`
+	Type       SourceType `yaml:"type"`
 }
 
 type Metadata struct {

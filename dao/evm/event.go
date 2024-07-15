@@ -1,3 +1,3 @@
-package dao
+package evm
 
 type Event map[string]interface{}
