@@ -1,0 +1,1 @@
+This directory contains interfaces for custom handlers. Custom logic should implement the proper interface in order to be processed by the system. See `examples.go` for examples.
