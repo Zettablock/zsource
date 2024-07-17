@@ -1,3 +1,3 @@
 package evm
 
-type Event map[string]interface{}
+type Event map[string]any
