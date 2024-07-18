@@ -6,8 +6,6 @@ import (
 
 	"github.com/lib/pq"
 	"gorm.io/gorm"
-
-	"github.com/Zettablock/zclient-base/dao/nft"
 )
 
 // Log mapped from table <logs>
@@ -37,7 +35,6 @@ type LogDao struct {
 	sourceDB  *gorm.DB
 	replicaDB []*gorm.DB
 	m         *Log
-	schema    *nft.DbSchema
 }
 
 const MintAddress = "0x0000000000000000000000000000000000000000"
@@ -48,11 +45,8 @@ const TransferEventTopic = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628
 const Erc1155TransferSingleEventTopic = "0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62"
 const Erc1155TransferBatchEventTopic = "0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb"
 
-func (d *LogDao) TableName() string {
-	return fmt.Sprintf("%s.logs", d.schema.Source)
-}
 
-func NewLogDao(schema *nft.DbSchema, dbs ...*gorm.DB) *LogDao {
+func NewLogDao(ctx context.Context, dbs ...*gorm.DB) *LogDao {
 	dao := new(LogDao)
 	switch len(dbs) {
 	case 0:
@@ -64,20 +58,5 @@ func NewLogDao(schema *nft.DbSchema, dbs ...*gorm.DB) *LogDao {
 		dao.sourceDB = dbs[0]
 		dao.replicaDB = dbs[1:]
 	}
-	dao.schema = schema
 	return dao
-}
-
-func (d *LogDao) List(blockNumber int64) []Log {
-	var o []Log
-	query := fmt.Sprintf(`
-        SELECT transaction_hash, transaction_index, block_number, log_index, data, topics,
-		contract_address, event, argument_values, block_time, data_creation_date
-        FROM %s.logs
-        WHERE block_number = %d
-			and event = 'Transfer'
-		ORDER BY log_index asc;
-    `, d.schema.Source, blockNumber)
-	d.sourceDB.Raw(query).Scan(&o)
-	return o
 }
