@@ -1,7 +1,7 @@
 package base
 
 import (
-	"fmt"
+	"context"
 	"time"
 
 	"github.com/lib/pq"
