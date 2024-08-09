@@ -1,11 +1,11 @@
 package utils
 
 import (
+	"log/slog"
 	"plugin"
 
 	"github.com/Zettablock/zsource/configs"
 
-	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 )
 
