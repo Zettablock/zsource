@@ -3,6 +3,7 @@ package testutils
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"path/filepath"
 	"testing"
 	"time"
@@ -13,7 +14,6 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 )
 

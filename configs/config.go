@@ -18,7 +18,7 @@ type PipelineConfig struct {
 	SpecVersion    string         `yaml:"specVersion"`
 	Org            string         `yaml:"org"`
 	Kind           string         `yaml:"kind"`
-	Version        int            `yaml:"version"`
+	Version        string         `yaml:"version"`
 	Environment    string         `yaml:"environment"`
 	Name           string         `yaml:"name"`
 	Network        string         `yaml:"network"`
