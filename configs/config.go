@@ -13,6 +13,12 @@ const (
 	RPC SourceType = "rpc"
 )
 
+const (
+	SourceDB             = "PG_EVM_PROD"
+	ProdDestinationDB    = ""
+	StagingDestinationDB = "RDS_TEST_DB"
+)
+
 type Config struct {
 	ProjectConfig  ProjectConfig
 	PipelineConfig PipelineConfig
@@ -72,6 +78,15 @@ type BlockHandler struct {
 	Handler string `yaml:"handler"`
 }
 
+func (c *Config) SetDefaults() {
+	c.PipelineConfig.Source.SourceDB = SourceDB
+	c.PipelineConfig.Source.Schema = fmt.Sprintf("%s_%s", c.ProjectConfig.Kind, c.ProjectConfig.Network)
+	c.PipelineConfig.Destination.DestinationDB = StagingDestinationDB
+	c.PipelineConfig.Destination.Schema = c.ProjectConfig.Org
+	c.PipelineConfig.Metadata.MetadataDB = c.PipelineConfig.Destination.DestinationDB
+	c.PipelineConfig.Metadata.Schema = c.PipelineConfig.Destination.Schema + "_md"
+}
+
 func (c *Config) Validate() error {
 	if err := c.ValidateProjectConfig(); err != nil {
 		return err
@@ -118,7 +133,7 @@ func (c *Config) ValidatePipelineConfig() error {
 	}
 
 	if c.PipelineConfig.Metadata.Schema == "" {
-		c.PipelineConfig.Metadata.Schema = c.ProjectConfig.Org
+		return errors.New("metadata db schema should not be empty")
 	}
 
 	if c.PipelineConfig.Metadata.MetadataDB == "" {
