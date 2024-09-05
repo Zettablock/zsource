@@ -14,17 +14,17 @@ const TableNameDeposit = "deposits"
 
 // Deposit mapped from table <deposits>
 type Deposit struct {
-	SlotNumber            int64     `gorm:"column:slot_number;primaryKey" json:"slot_number"`
-	Index                 int32     `gorm:"column:index;primaryKey" json:"index"`
-	Pubkey                string    `gorm:"column:pubkey" json:"pubkey"`
-	WithdrawalCredentials string    `gorm:"column:withdrawal_credentials" json:"withdrawal_credentials"`
-	Amount                float64   `gorm:"column:amount" json:"amount"`
-	Signature             string    `gorm:"column:signature" json:"signature"`
-	Proof                 pq.StringArray    `gorm:"column:proof;type:text[]" json:"proof"`
-	BlockTime             time.Time `gorm:"column:block_time;not null;type:timestamp" json:"block_time"`
-	BlockNumber           int64     `gorm:"column:block_number;not null" json:"block_number"`
-	BlockHash             string    `gorm:"column:block_hash;not null" json:"block_hash"`
-	BlockDate             time.Time `gorm:"column:block_date;not null" json:"block_date"`
+	SlotNumber            int64          `gorm:"column:slot_number;primaryKey" json:"slot_number"`
+	Index                 int32          `gorm:"column:index;primaryKey" json:"index"`
+	Pubkey                string         `gorm:"column:pubkey" json:"pubkey"`
+	WithdrawalCredentials string         `gorm:"column:withdrawal_credentials" json:"withdrawal_credentials"`
+	Amount                float64        `gorm:"column:amount" json:"amount"`
+	Signature             string         `gorm:"column:signature" json:"signature"`
+	Proof                 pq.StringArray `gorm:"column:proof;type:text[]" json:"proof"`
+	BlockTime             time.Time      `gorm:"column:block_time;not null;type:timestamp" json:"block_time"`
+	BlockNumber           int64          `gorm:"column:block_number;not null" json:"block_number"`
+	BlockHash             string         `gorm:"column:block_hash;not null" json:"block_hash"`
+	BlockDate             time.Time      `gorm:"column:block_date;not null" json:"block_date"`
 }
 
 // TableName Deposit's table name
