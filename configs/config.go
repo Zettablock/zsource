@@ -37,6 +37,14 @@ type PipelineConfig struct {
 	Destination    Destination    `yaml:"destination"`
 	EventHandlers  []EventHandler `yaml:"eventHandlers"`
 	BlockHandlers  []BlockHandler `yaml:"blockHandlers"`
+	Templates      []Template     `yaml:"templates"`
+}
+
+type Template struct {
+	Name          string         `yaml:"name"`
+	ABIFile       string         `yaml:"abiFile"`
+	Addresses     []string       `yaml:"addresses"`
+	EventHandlers []EventHandler `yaml:"eventHandlers"`
 }
 
 type Initialization struct {
