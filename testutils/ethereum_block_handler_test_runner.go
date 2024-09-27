@@ -83,7 +83,7 @@ type EthereumBlockHandlerTestRunner struct {
 // The script must exist under the testdata/init directory.
 func NewEthereumBlockHandlerTestRunner(
 	t *testing.T,
-	config *configs.PipelineConfig,
+	config *configs.Config,
 	sourceData *EthereumData,
 	destInitScriptName string,
 	destData *EthereumData) *EthereumBlockHandlerTestRunner {

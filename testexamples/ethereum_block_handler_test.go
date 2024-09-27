@@ -14,7 +14,7 @@ import (
 // A simple handler that looks for block 2 and if found writes it to the
 // destination table and custom table.
 func FindBlockHandlerString(blockNumber string, deps *utils.Deps) (bool, error) {
-	if deps.Config.Environment != "unittest" {
+	if deps.Config.ProjectConfig.Environment != "unittest" {
 		return false, nil
 	}
 	if blockNumber == "2" {
@@ -77,7 +77,9 @@ func TestHandlers(t *testing.T) {
 	destData.AddSchemaDataEmpty("ethereum_holesky")
 
 	// Prepare pipeline config.
-	config := &configs.PipelineConfig{Environment: "unittest"}
+	config := &configs.Config{
+		ProjectConfig: configs.ProjectConfig{Environment: "unittest"},
+	}
 
 	runner := testutils.NewEthereumBlockHandlerTestRunner(t, config, sourceData, "dest_init_example.sql", destData)
 	defer runner.Close()
